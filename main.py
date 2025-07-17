@@ -8,8 +8,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
-MAPS_URL = "http://maps.ufanet.ru/nizhnij-novgorod#1712127689UPE47"
+MAPS_URL = "http://maps.ufanet.ru/nizhnij-novgorod#1741252842NWH30"
 RESOLUTION = "1024x768"
+TOKEN_REFRESH_INTERVAL = 180
 
 
 if '#' in MAPS_URL:
@@ -20,7 +21,6 @@ else:
 FILE_NAME = "index.m3u8"
 IP_REGEX = r"http://([\d\.]+)"
 TOKEN_REGEX = r"token=([a-f0-9]{32})"
-TOKEN_REFRESH_INTERVAL = 60
 
 class CamStreamWindow:
     def __init__(self):
@@ -89,19 +89,18 @@ class CamStreamWindow:
         self.player.play()
 
     def token_update_loop(self):
-        self.start_browser()
         while True:
+            self.start_browser()
             ip, token = self.get_ip_and_token_from_iframe()
             if ip and token:
-                if (ip != self.ip) or (token != self.token):
-                    self.ip = ip
-                    self.token = token
-                    self.play_stream(ip, token)
-                else:
-                    print("[INFO] IP и токен не изменились, перезапуск не нужен.")
+                self.ip = ip
+                self.token = token
+                self.play_stream(ip, token)
             else:
                 print("[WARN] Не удалось получить IP или токен, повтор через время.")
+            self.driver.quit()
             time.sleep(TOKEN_REFRESH_INTERVAL)
+
 
     def on_close(self):
         print("[INFO] Завершение работы")
